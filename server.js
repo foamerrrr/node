@@ -1,9 +1,10 @@
-require('dotenv').config()
-const app = require("./app.js");
-const port = process.env.port;
+import "dotenv/config";
+import app from "./app.js";
 
-app.get('/', (req, res) => {
-  res.send('Hello World!');
+const port = process.env.PORT;
+
+app.get("/", (req, res) => {
+  res.send("Hello World!");
 });
 
 app.listen(port, () => {
