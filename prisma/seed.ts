@@ -1,4 +1,5 @@
 import { prisma } from "../app.js";
+import bcrypt from 'bcrypt';
 
 async function seedUser() {
   await prisma.user.upsert({
@@ -8,7 +9,7 @@ async function seedUser() {
       firstName: "John",
       lastName: "Doe",
       email: "john.doe@example.com",
-      password: "password123",
+      password: await bcrypt.hash("password123"),
     },
   });
 }
