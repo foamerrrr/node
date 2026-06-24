@@ -37,8 +37,8 @@ export const create = async (req, res) => {
     }
 
     const image = req.file
-      ? req.file.filename
-      : woodData.image ?? null;
+      ? `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}`
+      : null;
 
     woodData.image = image;
 
