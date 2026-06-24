@@ -4,8 +4,10 @@ export const readAll = async (req, res) => {
   try {
     const woods = await prisma.wood.findMany();
     res.json(woods);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+  } catch (error) {
+    return res.status(err.status || 500).json({
+      message: err.message || "Some error occured while trying to fetch wood."
+    });
   }
 };
 
@@ -17,7 +19,9 @@ export const readByHardness = async (req, res) => {
       },
     });
     res.json(woods);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+    } catch (error) {
+    return res.status(err.status || 500).json({
+      message: err.message || "Some error occured while trying to fetch wood."
+    });
   }
 };
