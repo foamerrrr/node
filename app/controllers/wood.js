@@ -26,14 +26,34 @@ export const readByHardness = async (req, res) => {
   }
 };
 
-export const create = (req, res) => {
-  const image = req.file
-    ? req.file.filename
-    : req.body.image ?? null;
+export const create = async (req, res) => {
+  try {
+    let woodData;
 
-  req.body.image = image;
+    if (req.body.datas) {
+      woodData = JSON.parse(req.body.datas);
+    } else {
+      woodData = req.body;
+    }
 
-  res.status(200).json({
-    body: req.body
-  });
+    const image = req.file
+      ? req.file.filename
+      : woodData.image ?? null;
+
+    woodData.image = image;
+
+    const wood = await prisma.wood.create({
+      data: woodData,
+    });
+
+    return res.status(201).json({
+      message: "Wood created",
+      data: wood,
+    });
+
+  } catch (error) {
+    return res.status(400).json({
+      error: error.message,
+    });
+  }
 };
