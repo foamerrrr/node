@@ -25,3 +25,15 @@ export const readByHardness = async (req, res) => {
     });
   }
 };
+
+export const create = (req, res) => {
+  const image = req.file
+    ? req.file.filename
+    : req.body.image ?? null;
+
+  req.body.image = image;
+
+  res.status(200).json({
+    body: req.body
+  });
+};

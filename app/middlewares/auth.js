@@ -10,7 +10,7 @@ export default (req, res, next) => {
     }
 
     const token = req.headers.authorization.split(' ')[1];
-    const decodedToken = jwt.verify(token, process.env.TOKEN_SECRET);
+    const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
     const userId = decodedToken.id;
 
     req.auth = { userId };
