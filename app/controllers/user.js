@@ -14,12 +14,10 @@ export const signup = async (req, res) => {
       },
     });
 
-    res.status(201).json(user);
+    return res.status(201).json(user);
   } catch (error) {
-    error.status(500).json({
-      name: error.name,
-      message: "Error 500 ",
-      clientVersion: error.clientVersion,
+    return res.status(err.status(500)).json({
+      message: "Some error occured while trying creting user."
     });
   }
 };
