@@ -16,8 +16,8 @@ export const signup = async (req, res) => {
 
     return res.status(201).json(user);
   } catch (error) {
-    return res.status(err.status(500)).json({
-      message: "Some error occured while trying creting user."
+    return res.status(err.status || 500).json({
+      message: err.message || "Some error occured while trying creting user."
     });
   }
 };
