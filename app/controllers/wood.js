@@ -2,8 +2,17 @@ import { prisma } from '../../app.js';
 
 export const readAll = async (req, res) => {
   try {
-    const woods = await prisma.wood.findMany();
-    res.json(woods);
+    const woods = await prisma.wood.findMany();    
+    const baseUrl = `${req.protocol}://${req.get("host")}`;
+    res.json(
+      woods.map((wood) => ({
+        ...wood,
+        links: {
+          self: `${baseUrl}/woods/${wood.id}`,
+          sameHardness: `${baseUrl}/woods/${wood.hardness}`,
+        },
+      }))
+    );
   } catch (error) {
     return res.status(err.status || 500).json({
       message: err.message || "Some error occured while trying to fetch wood."
@@ -18,7 +27,16 @@ export const readByHardness = async (req, res) => {
         hardness: req.params.hardness,
       },
     });
-    res.json(woods);
+    const baseUrl = `${req.protocol}://${req.get("host")}`;
+    res.json(
+      woods.map((wood) => ({
+        ...wood,
+        links: {
+          self: `${baseUrl}/woods/${wood.id}`,
+          sameHardness: `${baseUrl}/woods/${wood.hardness}`,
+        },
+      }))
+    );
     } catch (error) {
     return res.status(err.status || 500).json({
       message: err.message || "Some error occured while trying to fetch wood."
@@ -45,12 +63,14 @@ export const create = async (req, res) => {
     const wood = await prisma.wood.create({
       data: woodData,
     });
-
+    const baseUrl = `${req.protocol}://${req.get("host")}`;
     return res.status(201).json({
-      message: "Wood created",
-      data: wood,
-    });
-
+    ...wood,
+    links: {
+      self: `${baseUrl}/woods/${wood.id}`,
+      sameHardness: `${baseUrl}/woods/${wood.hardness}`,
+    },
+  });
   } catch (error) {
     return res.status(400).json({
       error: error.message,
