@@ -4,10 +4,18 @@ const getBaseUrl = (req) => `${req.protocol}://${req.get("host")}`;
 
 const withLinks = (wood, req) => ({
   ...wood,
-  links: {
-    self: `${getBaseUrl(req)}/woods/${wood.id}`,
-    sameHardness: `${getBaseUrl(req)}/woods/${wood.hardness}`,
-  },
+  links: [
+    {
+      rel: "self",
+      method: "GET",
+      href: `${getBaseUrl(req)}/woods/${wood.id}`,
+    },
+    {
+      rel: "sameHardness",
+      method: "GET",
+      href: `${getBaseUrl(req)}/woods/${wood.hardness}`,
+    },
+  ],
 });
 
 export const readAll = async (req, res) => {
