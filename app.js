@@ -2,8 +2,10 @@ import express from 'express';
 import { PrismaClient } from './generated/prisma/client.js';
 import { PrismaMariaDb } from '@prisma/adapter-mariadb';
 import router from './app/routes/index.js';
+import cors from "cors";
 
 const app = express();
+app.use(cors({origin: "http://localhost:8080",}));
 
 const databaseUrl = new URL(process.env.DATABASE_URL);
 const adapter = new PrismaMariaDb({
