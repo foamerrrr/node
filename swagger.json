@@ -17,10 +17,9 @@
         "type": "http",
         "scheme": "bearer",
         "bearerFormat": "JWT",
-        "description": "Saisir directement le jeton JWT généré lors du login."
+        "description": "Saisir directement le jeton JWT généré lors du login. Le mot 'Bearer' sera automatiquement ajouté dans l'en-tête HTTP 'Authorization'."
       }
     },
-
     "schemas": {
       "HateoasLink": {
         "type": "object",
@@ -42,63 +41,65 @@
         },
         "required": ["rel", "method", "href"]
       },
-
       "Wood": {
         "type": "object",
         "properties": {
           "id": {
             "type": "integer",
-            "example": 1
+            "example": 1,
+            "description": "Identifiant unique généré par la base de données"
           },
           "name": {
             "type": "string",
-            "example": "Épicéa"
+            "example": "Épicéa",
+            "description": "Nom de l'essence de bois"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["softwood", "exotic_wood", "noble_and_hardwoods"],
+            "example": "softwood",
+            "description": "Type de l'essence de bois"
           },
           "hardness": {
             "type": "string",
             "enum": ["tender", "medium_hard", "hard"],
-            "example": "tender"
+            "example": "tender",
+            "description": "Niveau de dureté standardisé du bois"
           },
           "image": {
             "type": "string",
-            "example": "http://localhost:5000/uploads/epicea.jpg"
+            "nullable": true,
+            "example": "http://localhost:5000/uploads/epicea_17175824.jpg",
+            "description": "URL absolue pointant vers l'image stockée sur le serveur"
           },
           "createdAt": {
             "type": "string",
-            "format": "date-time"
+            "format": "date-time",
+            "example": "2026-06-04T10:00:00.000Z",
+            "description": "Date de création de la ressource"
           },
           "updatedAt": {
             "type": "string",
-            "format": "date-time"
+            "format": "date-time",
+            "example": "2026-06-04T12:00:00.000Z",
+            "description": "Date de la dernière mise à jour de la ressource"
           }
         },
-        "required": ["id", "name", "hardness", "image", "createdAt", "updatedAt"]
+        "required": ["id", "name", "type", "hardness", "createdAt", "updatedAt"]
       },
-
       "WoodWithHateoas": {
         "allOf": [
-          {
-            "$ref": "#/components/schemas/Wood"
-          },
+          { "$ref": "#/components/schemas/Wood" },
           {
             "type": "object",
             "properties": {
               "links": {
                 "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/HateoasLink"
-                },
+                "items": { "$ref": "#/components/schemas/HateoasLink" },
+                "description": "Liens hypertextes dynamiques de navigation HATEOAS",
                 "example": [
-                  {
-                    "rel": "self",
-                    "method": "GET",
-                    "href": "http://localhost:5000/api/woods/1"
-                  },
-                  {
-                    "rel": "sameHardness",
-                    "method": "GET",
-                    "href": "http://localhost:5000/api/woods/4"
-                  }
+                  { "rel": "self", "method": "GET", "href": "http://localhost:5000/api/woods/1" },
+                  { "rel": "sameHardness", "method": "GET", "href": "http://localhost:5000/api/woods/tender" }
                 ]
               }
             },
@@ -106,56 +107,70 @@
           }
         ]
       },
-
       "ErrorResponse": {
         "type": "object",
         "properties": {
-          "error": {
-            "type": "string",
-            "example": "Missing token."
-          }
+          "error": { "type": "string", "example": "Missing token." }
         },
-        "required": ["error"]
+        "required": ["message"]
       }
     }
   },
-
   "paths": {
     "/woods": {
       "get": {
         "summary": "Récupérer toutes les essences de bois",
         "tags": ["Woods"],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "description": "Jeton d'authentification JWT au format : Bearer <token>",
+            "schema": {
+              "type": "string",
+              "example": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+            }
+          }
+        ],
         "security": [{ "BearerAuth": [] }],
         "responses": {
           "200": {
-            "description": "Liste des bois",
+            "description": "Collection de bois récupérée avec succès",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/WoodWithHateoas"
-                  }
+                  "items": { "$ref": "#/components/schemas/WoodWithHateoas" }
                 }
               }
             }
           },
           "401": {
-            "description": "Non autorisé",
+            "description": "Accès refusé. Jeton JWT manquant, expiré ou corrompu",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
               }
             }
           }
         }
       },
-
       "post": {
-        "summary": "Créer une essence de bois",
+        "summary": "Créer une nouvelle essence de bois",
         "tags": ["Woods"],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "description": "Jeton d'authentification JWT au format : Bearer <token>",
+            "schema": {
+              "type": "string",
+              "example": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+            }
+          }
+        ],
         "security": [{ "BearerAuth": [] }],
         "requestBody": {
           "required": true,
@@ -166,35 +181,104 @@
                 "properties": {
                   "datas": {
                     "type": "string",
-                    "example": "{\"name\":\"Épicéa\",\"hardness\":\"tender\"}"
+                    "description": "Objet JSON contenant les données du bois",
+                    "example": "{\"name\":\"Chêne\",\"type\":\"noble_and_hardwoods\",\"hardness\":\"hard\"}"
                   },
                   "image": {
                     "type": "string",
-                    "format": "binary"
+                    "format": "binary",
+                    "description": "Image de l'essence de bois"
                   }
-                }
+                },
+                "required": ["datas"]
+              }
+            },
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string", "example": "Chêne" },
+                  "type": { "type": "string", "enum": ["softwood", "exotic_wood", "noble_and_hardwoods"], "example": "noble_and_hardwoods" },
+                  "hardness": { "type": "string", "enum": ["tender", "medium_hard", "hard"], "example": "hard" }
+                },
+                "required": ["name", "type", "hardness"]
               }
             }
           }
         },
         "responses": {
           "201": {
-            "description": "Bois créé avec succès",
+            "description": "Essence de bois créée avec succès",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/WoodWithHateoas" }
+              }
+            }
+          },
+          "401": {
+            "description": "Accès refusé. Jeton JWT manquant, expiré ou corrompu",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "500": {
+            "description": "Erreur serveur",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/woods/{hardness}": {
+      "get": {
+        "summary": "Récupérer les essences de bois par dureté",
+        "tags": ["Woods"],
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "description": "Jeton d'authentification JWT au format : Bearer <token>",
+            "schema": {
+              "type": "string",
+              "example": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+            }
+          },
+          {
+            "name": "hardness",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": ["tender", "medium_hard", "hard"]
+            },
+            "description": "Niveau de dureté",
+            "example": "hard"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Liste des bois filtrée par dureté",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/WoodWithHateoas"
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/WoodWithHateoas" }
                 }
               }
             }
           },
           "401": {
-            "description": "Non autorisé",
+            "description": "Accès refusé",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
               }
             }
           }
